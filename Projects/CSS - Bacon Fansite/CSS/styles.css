@@ -1,0 +1,43 @@
+/************** TAG SELECTORS ***********************/
+
+body{
+    background-color: #FFC3A1;
+}
+
+img{
+    width: 10%;
+    height: 10%;
+    margin: auto;
+    border-radius: 50%;
+    border-style: solid;
+}
+
+p{
+    color: #D3756B;
+}
+
+
+/************** PSEUDO CLASS SELECTORS ***********************/
+img:hover{
+    width: 15%;
+    height: 15%;
+}
+
+
+
+/************** CLASS SELECTORS ***********************/
+
+.broccoli{
+    border-color: red;
+}
+
+.bacon{
+    border-color: green;
+}
+
+
+/************** ID SELECTORS ***********************/
+#heading{
+    color: #A75D5D;
+    font-size: 50px;
+}
