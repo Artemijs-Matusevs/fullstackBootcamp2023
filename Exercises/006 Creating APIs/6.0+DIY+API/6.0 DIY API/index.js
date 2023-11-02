@@ -8,20 +8,139 @@ const masterKey = "4VGP2DN-6EWM4SJ-N6FGRHV-Z3PR3TT";
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //1. GET a random joke
+app.get("/random/", (req, res) => {
+  //Genearte random number between 0 and the array length, round it down.
+  var random = Math.floor((Math.random() * jokes.length));
+
+  //Use that random number to send random joke JSON
+  res.json(jokes[random]);
+})
+
 
 //2. GET a specific joke
+app.get("/jokes/:id", (req, res) => {
+  //Get the path parameter of the joke ID and parse it to int
+  const id = parseInt(req.params.id);
+
+  //Find the joke with the matching id
+  const foundJoke = jokes.find((joke) => joke.id === id);
+
+  //Send the response with the joke in JSON format
+  res.json(foundJoke);
+})
+
+
 
 //3. GET a jokes by filtering on the joke type
+app.get("/filter", (req, res) => {
+  const type = res.query.type;//Get hold of the type query parameter
+
+  //Filter through the jokes array,
+  //Filtered Activities will be equal to the jokes in the array which equal the type variable.
+  const filteredActivities = jokes.filter((joke) => joke.jokeType === type);
+
+  //Send the filteredActivities array to the client as a JSON.
+  res.json(filteredActivities);
+})
+
+
 
 //4. POST a new joke
+app.post("/jokes", (req, res) => {
+  //New JS object to store the new Joke
+  const newJoke = {
+    id: jokes.length + 1, //Create ID by adding 1 to the jokes array length
+    jokeText: req.body.text, //Get joke text and type from the request form (Using body parser middleware)
+    jokeType: req.body.type,
+  };
+
+  //Add the new joke object to the current jokes array - Add it to the end of the array
+  jokes.push(newJoke);
+
+  console.log(jokes.slice(-1)); // Console log the last joke
+  res.json(newJoke); // Send the new joke as a response back to the client as a JSON.
+})
+
+
+
+
 
 //5. PUT a joke
+app.post("/jokes/:id", (req, res) => {
+  const id = parseInt(req.params.id); //Get hold of the id path parameter and convert it to an INT
+
+  //Create a new js object to store the new joke
+  const replacementJoke = {
+    id: id, //Set the ID of the new joke to the ID in the URL path parameter
+    jokeText: req.body.text, //Get text and type from the submited form (Using body parser middleware)
+    jokeType: req.body.type,
+  };
+
+  //Create an index to find the old joke in the array.
+  const searchIndex = jokes.findIndex((joke) => joke.id === id);//Find the position of the joke which has the same joke id as the one specified in the path param
+
+  //Using the search index, replace the old joke with the new joke
+  jokes[searchIndex] = replacementJoke;
+
+  //Send the new joke object as a json
+  res.json(replacementJoke);
+})
+
+
 
 //6. PATCH a joke
+app.patch ("/jokes/:id", (req, res) => {
+  const id = parseInt(req.params.id); //Get hold of the id path parameter and convert it to an INT
+
+  const existingJoke = jokes.find((joke) => joke.id === id); //Find the existing joke which matches the ID
+
+  //New JS object to store the replacement joke
+  const replacementJoke = {
+    id: id, //The ID will be the path parameter ID
+    jokeText: req.body.text || existingJoke.jokeText, // Joke text will be from the form OR if null, will be from the existing joke object
+    jokeType: req.body.type || existingJoke.jokeType, // same as above ^^^
+  };
+
+  const searchIndex = jokes.findIndex((joke) => joke.id === id);// Find the search index of the joke which is equal to the ID path parameter
+
+  jokes[searchIndex] = replacementJoke; //Replace the existing joke with the new replacement joke object
+  console.log(jokes[searchIndex]);// Log the new joke
+
+  res.json(replacementJoke);// Send the replacement joke as a JSON in the response
+})
+
+
+
+
+
+
 
 //7. DELETE Specific joke
+app.delete("/jokes/:id", (req, res) => {
+  const id = parseInt(req.params.id); // Get the ID from the Path param and convert to INT
+
+  const searchIndex = jokes.findIndex((joke) => joke.id === id); //Find the index of the joke which matches that ID
+  //findIndex() will return -1 if no jokes matches the condition
+
+  if (searchIndex > -1) {
+    jokes.splice(searchIndex, 1);
+    res.sendStatus(200);
+  } else {
+    res.status(404).json({ error: `Joke with id: ${id} not found. No joke were deleted.` })
+  }
+})
+
+
+
+
+
 
 //8. DELETE All jokes
+
+
+
+
+
 
 app.listen(port, () => {
   console.log(`Successfully started server on port ${port}.`);
