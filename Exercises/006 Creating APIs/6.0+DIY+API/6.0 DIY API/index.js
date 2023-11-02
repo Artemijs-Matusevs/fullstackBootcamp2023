@@ -122,10 +122,11 @@ app.delete("/jokes/:id", (req, res) => {
   const searchIndex = jokes.findIndex((joke) => joke.id === id); //Find the index of the joke which matches that ID
   //findIndex() will return -1 if no jokes matches the condition
 
-  if (searchIndex > -1) {
+  //Check to see if the joke was found
+  if (searchIndex > -1) { //If found remove the joke of the searchIndex and return status code 200
     jokes.splice(searchIndex, 1);
     res.sendStatus(200);
-  } else {
+  } else { //If not found, return status code 404 with error message
     res.status(404).json({ error: `Joke with id: ${id} not found. No joke were deleted.` })
   }
 })
@@ -136,7 +137,17 @@ app.delete("/jokes/:id", (req, res) => {
 
 
 //8. DELETE All jokes
+app.delete("/all", (req, res) => {
+  const userKey = req.query.key; //The key is being passed as a query parameter
 
+  //compare the user key entered with the master key
+  if (userKey === masterKey){
+    jokes = []; //If match, set the array to equal nothing and return status code 200
+    res.sendStatus(200);
+  } else { //Else, send status code 404 and an error message in the response as a JSON.
+    res.status(404).json( { error: `You are not authorised to perform this action.` })
+  }
+})
 
 
 

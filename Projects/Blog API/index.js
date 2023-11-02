@@ -40,15 +40,86 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //Write your code here//
 
+
 //CHALLENGE 1: GET All posts
+app.get("/posts", (req, res) => {
+  res.json(posts);
+})
 
 //CHALLENGE 2: GET a specific post by id
+app.get("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id);//Get hold of the id path parameter and convert it to an INT
+
+  //Get the search index of the post which matches the id
+  const searchIndex = posts.findIndex((post) => post.id === id);
+
+  //Send back the post with the search index as a JSON
+  res.json(posts[searchIndex]);
+})
+
+
 
 //CHALLENGE 3: POST a new post
+app.post("/posts", (req, res) => {
+  //Create new JS object to hold the new post details
+  const newPost = {
+    id: posts.length + 1, //Id will be one greater than previous post
+    title: req.body.title, //Get title, content and author from submited form
+    content: req.body.content,
+    author: req.body.author,
+    date: new Date(), //Function to get current date,time
+  }
+
+  //Add the newPost js object to the current posts array
+  posts.push(newPost);
+  res.json(newPost); // Send the new post as a response in JSON format
+})
+
+
 
 //CHALLENGE 4: PATCH a post when you just want to update one parameter
+app.patch("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id) //Get the ID from the path param and convert to INT
+
+  //Find the existing post
+  const existingPost = posts.find((post) => post.id === id);//Search for post where post id is the same as the path param
+
+  //New JS object, to replace the old post
+  const replacementPost = {
+    id: id,
+    title: req.body.title || existingPost.title,
+    content: req.body.content || existingPost.content,
+    author: req.body.author || existingPost.author,
+    date: new Date(),
+  }
+
+  //Find the index of te current post
+  const searchIndex = posts.findIndex((post) => post.id === id);
+
+  //Replace old post with new post object
+  posts[searchIndex] = replacementPost;
+
+  res.json(replacementPost);//Send the replacement post
+})
+
 
 //CHALLENGE 5: DELETE a specific post by providing the post id.
+app.delete("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id); // Get the ID from the path param and convert to INT
+
+  const searchIndex = posts.findIndex((post) => post.id === id); //Find the index of the post which matches the cireria
+  //findIndex() will erturn -1 if no posts match the criteria
+
+  //Check to see if the post was found
+  if (searchIndex > -1) {
+    posts.splice(searchIndex, 1);//If found, remove the joke from array
+    res.sendStatus(200);//Send status 200, which means "ok"
+  } else {//If not found, return statu code404 with error message in form of a JSON
+    res.status(404).json({error: `Post with id: ${id} not found. No posts were deleted`})
+
+  }
+})
+
 
 app.listen(port, () => {
   console.log(`API is running at http://localhost:${port}`);
