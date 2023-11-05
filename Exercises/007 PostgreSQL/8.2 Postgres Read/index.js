@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import pg from "pg";
 
 const app = express();
 const port = 3000;
@@ -11,6 +12,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 let currentQuestion = {};
+
+//Quiz qestions
+let quiz = [];
+
+//Config file for postgresDB
+const db = new pg.Client({
+    user: "postgres",
+    host: "localhost",
+    database: "world",
+    password: "",
+    port: 5432,
+})
+
+db.connect(); //Connect to DB
+
+//Query db to retrieve flags table
+db.query("SELECT * FROM flags", (err, res) => {
+  if (err) {
+    console.error("Error executng query", err.stack);
+  } else {
+    quiz = res.rows;
+  }
+
+  db.end();
+
+});
+
 
 // GET home page
 app.get("/", (req, res) => {
