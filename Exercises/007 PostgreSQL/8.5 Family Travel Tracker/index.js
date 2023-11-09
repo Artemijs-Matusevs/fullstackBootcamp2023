@@ -9,7 +9,7 @@ const db = new pg.Client({
   user: "postgres",
   host: "localhost",
   database: "world",
-  password: "123456",
+  password: "10151015",
   port: 5432,
 });
 db.connect();
@@ -19,28 +19,29 @@ app.use(express.static("public"));
 
 let currentUserId = 1;
 
-let users = [
+/*let users = [
   { id: 1, name: "Angela", color: "teal" },
   { id: 2, name: "Jack", color: "powderblue" },
-];
+];*/
 
-async function checkVisisted() {
-  const result = await db.query("SELECT country_code FROM visited_countries");
-  let countries = [];
-  result.rows.forEach((country) => {
-    countries.push(country.country_code);
-  });
-  return countries;
-}
+
+
+
+
+
 app.get("/", async (req, res) => {
-  const countries = await checkVisisted();
+  const userData = await checkVisited(currentUserId);
   res.render("index.ejs", {
-    countries: countries,
-    total: countries.length,
-    users: users,
-    color: "teal",
+    countries: userData.countries,
+    total: userData.countries.length,
+    users: await checkUsers(),
+    color: userData.userColor,
   });
 });
+
+
+
+
 app.post("/add", async (req, res) => {
   const input = req.body["country"];
 
@@ -65,7 +66,64 @@ app.post("/add", async (req, res) => {
     console.log(err);
   }
 });
-app.post("/user", async (req, res) => {});
+
+
+//Form submited to this endpoint with user ID
+app.post("/user", async (req, res) => {
+  //console.log(req.body.user);
+
+  const userID = req.body.user;
+  const userData = await checkVisited(userID);
+
+  res.render("index.ejs", {
+    countries: userData.countries,
+    total: userData.countries.length,
+    users: await checkUsers(),
+    color: userData.userColor,
+  });
+
+
+  //console.log(await checkUsers());
+});
+
+
+
+//Function to retrieve a specific user's data by their user ID
+async function checkVisited(userID) {
+  const result = await db.query(`
+    SELECT country_code, color 
+    FROM visited_countries 
+    JOIN users 
+    ON users.id = visited_countries.user_id 
+    WHERE user_id = $1`, 
+    [userID]);
+
+  let countries = [];
+  result.rows.forEach((country) => {
+    countries.push(country.country_code);
+  });
+
+  //Create new userData object which will contain an array of country codes, and the user color
+  let userData = {
+    countries: countries,
+    userColor: result.rows[0].color
+  }
+
+  return userData;
+}
+
+
+//Function to retrieve all users
+async function checkUsers(){
+  const result = await db.query(`
+    SELECT *
+    FROM users`)
+
+    return result.rows
+}
+
+
+
 
 app.post("/new", async (req, res) => {
   //Hint: The RETURNING keyword can return the data that was inserted.
