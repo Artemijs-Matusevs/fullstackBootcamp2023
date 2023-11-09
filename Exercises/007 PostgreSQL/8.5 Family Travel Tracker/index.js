@@ -38,7 +38,7 @@ app.get("/", async (req, res) => {
     color: userData.userColor,
   });
 
-  console.log(userData.countries);
+  //console.log(userData.countries);
 });
 
 
@@ -92,19 +92,25 @@ app.post("/add", async (req, res) => {
 
 //Form submited to this endpoint with user ID
 app.post("/user", async (req, res) => {
-  //console.log(req.body.user);
+  if (req.body.add === "new"){
+    res.render("new.ejs")
+  }
 
   const userID = req.body.user;
-  const userData = await checkVisited(userID);
 
-  currentUserId = userID;
+  if(userID != null){
+    const userData = await checkVisited(userID);
 
-  res.render("index.ejs", {
-    countries: userData.countries,
-    total: userData.countries.length,
-    users: await checkUsers(),
-    color: userData.userColor,
-  });
+    currentUserId = userID;
+  
+    res.render("index.ejs", {
+      countries: userData.countries,
+      total: userData.countries.length,
+      users: await checkUsers(),
+      color: userData.userColor,
+    });
+  }
+
 
 
   //console.log(await checkUsers());
@@ -133,7 +139,7 @@ async function checkVisited(userID) {
     userColor: await checkColor(userID)
   }
 
-  console.log(userData);
+  //console.log(userData);
   return userData;
 }
 
@@ -168,7 +174,22 @@ async function checkUsers(){
 app.post("/new", async (req, res) => {
   //Hint: The RETURNING keyword can return the data that was inserted.
   //https://www.postgresql.org/docs/current/dml-returning.html
+
+  //Create new record in the users table
+  const result = await db.query(`
+    INSERT INTO users
+    (name, color)
+    VALUES ($1, $2)
+    RETURNING *`,
+    [req.body.name, req.body.color]);
+
+  currentUserId = result.rows[0].id;
+  res.redirect("/");
 });
+
+
+
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
