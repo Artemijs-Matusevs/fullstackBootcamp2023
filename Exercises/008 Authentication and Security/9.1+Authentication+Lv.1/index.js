@@ -1,8 +1,19 @@
 import express from "express";
 import bodyParser from "body-parser";
+import pg from "pg";
 
 const app = express();
 const port = 3000;
+
+//Connect to DB
+const db = new pg.Client({
+  user: "postgres",
+  host: "localhost",
+  database: "Users",
+  password: "",
+  port: 5432,
+});
+db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -16,13 +27,38 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  
   res.render("register.ejs");
 });
 
-app.post("/register", async (req, res) => {});
+app.post("/register", async (req, res) => {
 
-app.post("/login", async (req, res) => {});
+  //Get submited details from register form
+  const email = req.body.username;
+  const password = req.body.password;
 
+
+  //insert data into db
+  const result = await db.query(
+    "INSERT INTO users (email, password) VALUES ($1, $2)",
+    [email, password]
+  );
+  console.log(result);
+  res.render("secrets.ejs");//Render secrets
+
+});
+
+app.post("/login", async (req, res) => {
+
+  //Get submited details from login form
+  const email = req.body.username;
+  const password = req.body.password;
+
+
+});
+
+
+//Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
