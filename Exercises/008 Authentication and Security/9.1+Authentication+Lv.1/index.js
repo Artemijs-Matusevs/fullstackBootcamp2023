@@ -1,9 +1,11 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import bcrypt from "bcrypt";
 
 const app = express();
 const port = 3000;
+const saltRounds = 10;
 
 //Connect to DB
 const db = new pg.Client({
@@ -48,12 +50,19 @@ app.post("/register", async (req, res) => {
     if (checkResult.rows.length > 0){
       res.send("Email already exists")
     }else{
-      const result = await db.query(
-        "INSERT INTO users (email, password) VALUES ($1, $2)",
-        [email, password]
-      );
-      console.log(result);
-      res.render("secrets.ejs");//Render secrets
+      //Password Hashing
+      bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if (err) {
+          console.log(err.message);
+        }else{
+          const result = await db.query(
+            "INSERT INTO users (email, password) VALUES ($1, $2)",
+            [email, hash]
+          );
+          console.log(result);
+          res.render("secrets.ejs");//Render secrets
+        }
+      })
     }
   }catch(err){
     console.log(err);
@@ -73,19 +82,23 @@ app.post("/login", async (req, res) => {
     //Get user details
     const storedResults = await db.query("SELECT * FROM users WHERE email = $1", 
     [email]);
-    //console.log(storedDetails.rows[0].email);
-    const storedPassword = storedResults.rows[0].password;
 
-    //compare passwords
-    if(storedPassword == password){
-      //console.log("Passwords match");
-      res.render("secrets.ejs");//Render secrets
-    }
-    else{
-      //console.log("Passwords don't match");
-      res.send("Wrong password")
-    }
+    if(storedResults.rows > 0){//If there is a matching record in DB
+      //console.log(storedDetails.rows[0].email);
+      const storedPassword = storedResults.rows[0].password;
 
+      //compare passwords
+      if(storedPassword == password){
+        //console.log("Passwords match");
+        res.render("secrets.ejs");//Render secrets
+      }
+      else{
+        //console.log("Passwords don't match");
+        res.send("Wrong password")
+      }
+    }else{
+      res.send("Email doesn't exist")
+    }
   }catch(err){
     console.log(err);
   }
