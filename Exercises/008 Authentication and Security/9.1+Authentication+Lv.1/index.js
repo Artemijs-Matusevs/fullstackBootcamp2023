@@ -83,19 +83,23 @@ app.post("/login", async (req, res) => {
     const storedResults = await db.query("SELECT * FROM users WHERE email = $1", 
     [email]);
 
-    if(storedResults.rows > 0){//If there is a matching record in DB
+    if(storedResults.rows.length > 0){//If there is a matching record in DB
       //console.log(storedDetails.rows[0].email);
       const storedPassword = storedResults.rows[0].password;
 
-      //compare passwords
-      if(storedPassword == password){
-        //console.log("Passwords match");
-        res.render("secrets.ejs");//Render secrets
-      }
-      else{
-        //console.log("Passwords don't match");
-        res.send("Wrong password")
-      }
+      bcrypt.compare(password, storedPassword, (err, result) => {
+        if (err){
+          console.log(err);
+        }else{
+          //console.log(result)
+          if (result){
+            res.render("secrets.ejs");//Render secrets
+          } else{
+            res.send("Wrong password")
+          }
+        }
+      })
+
     }else{
       res.send("Email doesn't exist")
     }
