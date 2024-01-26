@@ -14,7 +14,7 @@ env.config();
 
 app.use(
   session({
-    secret: "TOPSECRETWORD",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
   })
@@ -29,7 +29,7 @@ const db = new pg.Client({
   user: "postgres",
   host: "localhost",
   database: "Users",
-  password: "",
+  password: process.env.DATABASE_PASSWORD,
   port: 5432,
 });
 db.connect();
