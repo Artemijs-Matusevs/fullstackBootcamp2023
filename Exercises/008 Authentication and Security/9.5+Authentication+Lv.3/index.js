@@ -43,6 +43,11 @@ app.get(
   })
 );
 
+app.get("/auth/google/secrets", passport.authenticate("google", {
+  successRedirect: "/secrets",
+  failureRedirect: "/login"
+}))
+
 app.get("/", (req, res) => {
   res.render("home.ejs");
 });
