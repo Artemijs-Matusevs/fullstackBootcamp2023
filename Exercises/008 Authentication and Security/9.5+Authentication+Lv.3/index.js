@@ -60,6 +60,45 @@ app.get("/register", (req, res) => {
   res.render("register.ejs");
 });
 
+
+app.get("/submit", (req, res) => {
+
+  if( req.isAuthenticated()){
+    res.render("submit.ejs");
+
+  }else{
+    res.redirect("/");
+  }
+});
+
+
+app.post("/submit", async (req, res) => {
+
+  if(req.isAuthenticated()){
+    //console.log(req.user);
+    //console.log(req.body.secret);
+    const newSecret = req.body.secret; //Get the new secret
+    const userEmail = req.user.email; //Get authorized users email
+
+    //Insert into db
+    try{
+      await db.query(` 
+        UPDATE users 
+        SET secret = $1 
+        WHERE email = $2; `,
+        [newSecret, userEmail]);
+
+        req.user.secret = newSecret;
+        res.redirect("/secrets");
+
+    }catch(error){
+      console.log(error);
+    }
+  }
+})
+
+
+
 app.get("/logout", (req, res) => {
   req.logout(function (err) {
     if (err) {
@@ -70,9 +109,11 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/secrets", (req, res) => {
-  console.log(req.user);
+  //console.log(req.user);
   if (req.isAuthenticated()) {
-    res.render("secrets.ejs");
+    res.render("secrets.ejs", {
+      secret: req.user.secret,
+    });
   } else {
     res.redirect("/login");
   }
